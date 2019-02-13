@@ -3,7 +3,7 @@
 This project contains the main Eclipse plug-in of the VisuFlow project group. VisuFlow helps static code developers in writing static analyses on top of Soot.
 
 # Installation
-==========================
+
 Import the `visuflow-plugin` and `visuflow-target` projects into your eclipse workspace and then follow the steps below:
 
 1. Open `visuflow.target` file in visuflow-target project.
@@ -21,4 +21,4 @@ Import the `visuflow-plugin` and `visuflow-target` projects into your eclipse wo
 
 # Running the Analysis
 
-After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` from the DemoApp folder into the plugin workspace. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
+After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` projects from the DemoApp folder into the plugin workspace. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
