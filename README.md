@@ -4,7 +4,7 @@ This project contains the main Eclipse plug-in of the VisuFlow project group. Vi
 
 # Installation
 
-Import the `visuflow-plugin` and `visuflow-target` projects into your eclipse workspace and then follow the steps below:
+Import the `visuflow-plugin` and `visuflow-target` projects into your "Eclipse IDE for RCP and RAP Developers" workspace and then follow the steps below:
 
 1. Open `visuflow.target` file in visuflow-target project.
 2. Click on the link `Set as Target Platform` in the top right corner.
