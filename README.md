@@ -22,3 +22,8 @@ Import the `visuflow-plugin` and `visuflow-target` projects into your eclipse wo
 # Running the Analysis
 
 After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` projects from the DemoApp folder into the plugin workspace. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
+
+# Compatibility
+
+The VisuFlow plugin is compatible with Java 8 and all the newer versions of Eclipse (Neon +).
+For Java 9 the work is in progress.
