@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+soot.jimple.internal.JAssignStmt=-6037505
+soot.jimple.internal.JEnterMonitorStmt=-6037505
+soot.jimple.internal.JExitMonitorStmt=-6037505
+soot.jimple.internal.JGotoStmt=-6037505
+soot.jimple.internal.JIdentityStmt=-6037505
+soot.jimple.internal.JIfStmt=-6037505
+soot.jimple.internal.JInvokeStmt=-6037505
+soot.jimple.internal.JLookupSwitchStmt=-6037505
+soot.jimple.internal.JNopStmt=-6037505
+soot.jimple.internal.JRetStmt=-6037505
+soot.jimple.internal.JReturnStmt=-6037505
+soot.jimple.internal.JReturnVoidStmt=-6037505
+soot.jimple.internal.JTableSwitchStmt=-6037505
+soot.jimple.internal.JThrowStmt=-6037505
