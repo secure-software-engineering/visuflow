@@ -1,4 +1,4 @@
-package de.visuflow.ex2;
+﻿package de.visuflow.ex2;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -88,10 +88,10 @@ public class MainClass {
 //      Main.main(new String[] { "-pp", "-process-dir", targetDir, "-w", "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", "-src-prec", "class", "-output-format", "none" });
   
 //
-      String rtJar = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
+//      String rtJar = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
 //
-      Main.main(new String[] { "-cp", "./bin" + File.pathSeparator + rtJar, "-exclude", "javax",
-              "-allow-phantom-refs", "-no-bodies-for-excluded", "-process-dir", "./bin", "-src-prec",
+      Main.main(new String[] { "-pp", "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", 
+    		  "-process-dir", "E:\\runtime-New_configuration\\TaintProject\\bin", "-src-prec",
               "only-class", "-output-format", "none", "de.visuflow.analyzeMe.ex2.TargetClass2" });
       
     }

@@ -21,7 +21,11 @@ Import the `visuflow-plugin` and `visuflow-target` projects into your "Eclipse I
 
 # Running the Analysis
 
-After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` projects from the DemoApp folder into the plugin workspace. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
+After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` projects from the DemoApp folder into the plugin workspace. Also check the option `Copy projects into workspace` while importing them.
+
+1. Make sure to reference the correct soot jar file in the build path of the project `visuflow-uitests-analysis`.
+2. Edit the path for "visuflow-uitests-target" project in the soot string (end of MainClass.java file after the "-process-dir" option) according to location of project on your system.
+3. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
 
 # Compatibility
 
