@@ -82,16 +82,10 @@ public class MainClass {
 
 
      // Run Soot
-//      PackManager.v().getPack("wjtp").add(fqnTagger);
       PackManager.v().getPack("jtp").add(transform);
-//      String targetDir = "/home/henni/devel/pg/workspace-plugin/visuflow-workspace/TaintProject/bin/";
-//      Main.main(new String[] { "-pp", "-process-dir", targetDir, "-w", "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", "-src-prec", "class", "-output-format", "none" });
-  
-//
-//      String rtJar = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
-//
+
       Main.main(new String[] { "-pp", "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", 
-    		  "-process-dir", "E:\\runtime-New_configuration\\TaintProject\\bin", "-src-prec",
+    		  "-process-dir", ".." + File.separator + "TaintProject" + File.separator + "bin", "-src-prec",
               "only-class", "-output-format", "none", "de.visuflow.analyzeMe.ex2.TargetClass2" });
       
     }
