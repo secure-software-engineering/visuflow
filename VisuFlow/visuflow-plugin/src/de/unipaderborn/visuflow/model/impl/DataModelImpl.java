@@ -1,6 +1,7 @@
 package de.unipaderborn.visuflow.model.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import org.osgi.service.event.EventAdmin;
 
 import de.unipaderborn.visuflow.Logger;
 import de.unipaderborn.visuflow.Visuflow;
+import de.unipaderborn.visuflow.VisuflowConstants;
 import de.unipaderborn.visuflow.debug.handlers.NavigationHandler;
 import de.unipaderborn.visuflow.model.DataModel;
 import de.unipaderborn.visuflow.model.VFClass;
@@ -75,6 +77,9 @@ public class DataModelImpl implements DataModel {
 	private List<VFNode> selectedNodes;
 
 	private boolean selection;
+	
+	// Required for the evaluation of the omniscient debugger. Should be changed later as this is not the best way
+	private VFUnit currentUnit;
 
 	/* (non-Javadoc)
 	 * @see de.unipaderborn.visuflow.model.DataModel#listClasses()
@@ -188,6 +193,16 @@ public class DataModelImpl implements DataModel {
 	@Override
 	public VFMethod getSelectedMethod() {
 		return selectedMethod;
+	}
+	
+	@Override
+	public void setCurrentUnit(VFUnit unit) {
+		currentUnit = unit;
+	}
+	
+	@Override
+	public VFUnit getCurrentUnit() {
+		return currentUnit;
 	}
 
 	/* (non-Javadoc)
@@ -335,6 +350,60 @@ public class DataModelImpl implements DataModel {
 		Event filterGraph = new Event(DataModel.EA_TOPIC_DATA_FILTER_GRAPH, properties);
 		eventAdmin.postEvent(filterGraph);
 	}
+	
+	public VFUnit findPredecessor(String unitFqn) {
+		boolean updateCfg = false;
+		VFUnit currentUnit = getVFUnit(unitFqn);
+		List<VFNode> potentialPredecessors = new ArrayList<VFNode>();
+		if(currentUnit.getVfMethod().getUnits().get(0).getFullyQualifiedName().equals(currentUnit.getFullyQualifiedName())) {
+			List<VFUnit> predecessors = currentUnit.getVfMethod().getIncomingEdges();
+			int counter = currentUnit.getVfMethod().getUnits().size() + 10;
+			for(VFUnit unit: predecessors) {
+				if(unit.getOutSet() != null) {
+					VFNode node = new VFNode(unit, counter);
+					potentialPredecessors.add(node);
+					counter++;
+				}
+			}
+			updateCfg = true;
+		} else {
+			potentialPredecessors = currentUnit.getVfMethod().getControlFlowGraph().getIncomingEdges(currentUnit);
+		}
+		
+		if(potentialPredecessors.size() == 0) {
+			return null;
+		} else if(potentialPredecessors.size() == 1) {
+			return potentialPredecessors.get(0).getVFUnit();
+		} else {
+			requestPredecessor(potentialPredecessors, currentUnit, updateCfg);
+			return null;
+		}
+	}
+	
+	public void requestPredecessor(List<VFNode> nodes, VFUnit currentUnit, boolean updateCfg) {
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put("options", nodes);
+		properties.put("update", updateCfg);
+		properties.put("current", currentUnit);
+		Event requestChoice = new Event(DataModel.EA_TOPIC_DATA_CHOICE_REQUIRED, properties);
+		eventAdmin.postEvent(requestChoice);
+	}
+	
+	public void returnPredecessor(String fqn) {
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put("choice", fqn);
+		Event returnChoice = new Event(VisuflowConstants.EA_TOPIC_DEBUGGING_ACTION_PATH_CHOSEN, properties);
+		eventAdmin.postEvent(returnChoice);
+	}
+	
+	public void stepToUnit(String fqn, boolean direction) {
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put("direction", direction);
+		VFUnit destination = getVFUnit(fqn);
+		properties.put("destination", destination);
+		Event stepTo = new Event(VisuflowConstants.EA_TOPIC_DEBUGGING_ACTION_STEP_TO_UNIT, properties);
+		eventAdmin.postEvent(stepTo);
+	}
 
 	/* (non-Javadoc)
 	 * @see de.unipaderborn.visuflow.model.DataModel#HighlightJimpleUnit(de.unipaderborn.visuflow.model.VFNode)
@@ -405,6 +474,7 @@ public class DataModelImpl implements DataModel {
 			}
 		};
 		build.schedule();
+		EventDatabase.getInstance().reset();
 	}
 
 	/* (non-Javadoc)
