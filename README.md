@@ -25,6 +25,11 @@ After the plugin have been launched import the `visuflow-uitests-analysis` and `
 
 1. Make sure to reference the correct soot jar file in the build path of the project `visuflow-uitests-analysis`.
 2. Now follow the insturctions [in this video](https://www.youtube.com/watch?v=51iimUDaOPQ).
+3. Trigger Stepping Backwards:
+   - In VisuFlow’s graph view, it is possible to right-click any evaluated unit and to choose the option `stepback` while debugging the analysis.
+   - If there are several potential methods to step back to, the user interface requests the user’s choice about the path to step back into.
+   - This is shown as green arrow icons in the graph view, from which user can select the desired unit to step back to by click the desired arrow icon.
+   - Another option for triggering the debugger to step back is by using the timeline view which can be opened using `Window > Show View > Other... > VisuFlow >      TimelineView`.
 
 # Compatibility
 
