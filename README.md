@@ -31,6 +31,8 @@ After the plugin have been launched import the `visuflow-uitests-analysis` and `
    - This is shown as green arrow icons in the graph view, from which user can select the desired unit to step back to by click the desired arrow icon.
    - Another option for triggering the debugger to step back is by using the timeline view which can be opened using `Window > Show View > Other... > VisuFlow >      TimelineView`.
 
+Note: Main class is `Runner.java` in `visuflow-uitests-analysis`.
+
 # Compatibility
 
 The VisuFlow plugin is compatible with Java 8 and all the newer versions of Eclipse (Neon +).
