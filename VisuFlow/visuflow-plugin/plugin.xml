@@ -29,6 +29,13 @@
             name="Unit Inspection View"
             restorable="true">
       </view>
+      <view
+      		category="GraphStreamFeasibility"
+            class="de.unipaderborn.visuflow.ui.view.TimelineView"
+            icon="icons/sample.gif"
+            id="de.unipaderborn.visuflow.ui.view.TimelineViewPart"
+            name="Timeline">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -111,6 +118,13 @@
                icon="icons/media-playback-start.png"
                label="Resume"
                style="push">
+         </command>
+         <command
+   	 		   commandId="visuflow.debug.step.back"
+         	   icon="icons/stepback.png"
+         	   label="Step back"
+         	   style="push"
+         	   tooltip="Step back">
          </command>
          <command
                commandId="visuflow.debug.step.over"
@@ -238,6 +252,11 @@
    <command
          id="GraphStreamFeasibility.LinkTargetProject"
          name="Link Target Project">
+   </command>
+   <command
+         defaultHandler="de.unipaderborn.visuflow.debug.handlers.DebugStepBackHandler"
+         id="visuflow.debug.step.back"
+         name="Step back">
    </command>
    <command
          defaultHandler="de.unipaderborn.visuflow.debug.handlers.DebugStepResumeHandler"

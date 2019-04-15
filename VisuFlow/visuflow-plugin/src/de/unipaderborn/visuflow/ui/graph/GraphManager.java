@@ -71,8 +71,12 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.graphicGraph.GraphicElement;
+import org.graphstream.ui.graphicGraph.stylesheet.Selector;
+import org.graphstream.ui.graphicGraph.stylesheet.StyleConstants.Units;
 import org.graphstream.ui.layout.Layout;
 import org.graphstream.ui.layout.springbox.implementations.SpringBox;
+import org.graphstream.ui.spriteManager.Sprite;
+import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.swingViewer.ViewPanel;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
@@ -118,6 +122,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	 * Instance of {@link org.graphstream.graph.Graph} object.
 	 */
 	Graph graph;
+	SpriteManager sman;
 	/**
 	 * Path to the style sheet of the graph.
 	 */
@@ -189,6 +194,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	private JMenuItem followCall;
 	private JMenuItem followReturn;
 	private JMenuItem setCustomAttribute;
+	private JMenuItem stepBack;
 	private JMenu callGraphOption;
 	private JMenuItem cha;
 	private JMenuItem spark;
@@ -217,6 +223,8 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 		renderICFG(ServiceUtil.getService(DataModel.class).getIcfg());
 
 		adjustToolbarButtonHeights();
+		
+		sman = new SpriteManager(graph);
 	}
 
 	private void adjustToolbarButtonHeights() {
@@ -246,8 +254,8 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	 * @author Shashank B S
 	 */
 	private void registerEventHandler() {
-		String[] topics = new String[] { EA_TOPIC_DATA_FILTER_GRAPH, EA_TOPIC_DATA_SELECTION, EA_TOPIC_DATA_MODEL_CHANGED, EA_TOPIC_DATA_UNIT_CHANGED,
-		"GraphReady" };
+		String[] topics = new String[] { EA_TOPIC_DATA_FILTER_GRAPH, EA_TOPIC_DATA_SELECTION, EA_TOPIC_DATA_MODEL_CHANGED, EA_TOPIC_DATA_UNIT_CHANGED, 
+				DataModel.EA_TOPIC_DATA_CHOICE_REQUIRED, "GraphReady" };
 		Hashtable<String, Object> properties = new Hashtable<>();
 		properties.put(EventConstants.EVENT_TOPIC, topics);
 		ServiceUtil.registerService(EventHandler.class, this, properties);
@@ -451,6 +459,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 		navigateToJava = new JMenuItem("Navigate to Java");
 		showInUnitView = new JMenuItem("Highlight on Units view");
 		setCustomAttribute = new JMenuItem("Set custom attribute");
+		stepBack = new JMenuItem("Step back");
 		followCall = new JMenuItem("Follow the Call");
 		followReturn = new JMenuItem("Follow the Return");
 
@@ -463,6 +472,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 
 		followCall.setVisible(false);
 		followReturn.setVisible(false);
+		stepBack.setVisible(false);
 
 		navigateToJimple.addActionListener(new ActionListener() {
 
@@ -539,6 +549,22 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 						e1.printStackTrace();
 					}
 				}
+			}
+		});
+		
+		stepBack.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				GraphicElement curElement = view.findNodeOrSpriteAt(x, y);
+				if (curElement == null)
+					return;
+				Node curr = graph.getNode(curElement.getId());
+				Object node = curr.getAttribute("nodeUnit");
+				if(node instanceof VFNode) {
+					String destination = ((VFNode) node).getVFUnit().getFullyQualifiedName();
+					DataModel dataModel = ServiceUtil.getService(DataModel.class);
+					dataModel.stepToUnit(destination, false);
+				}	
 			}
 		});
 
@@ -712,7 +738,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 		searchTextField.addActionListener(new ActionListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {				
 				String searchString = searchTextField.getText().toLowerCase();
 				if(searchString.isEmpty())
 					return;
@@ -819,25 +845,25 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 				if (curElement == null) {
 					view.setToolTipText(null);
 				}
+				
+				if (curElement != null && curElement.getSelectorType().equals(Selector.Type.NODE)) {
+						Node node = graph.getNode(curElement.getId());
+						String result = "<html><table>";
+						int maxToolTipLength = 0;
+						for (String key : node.getEachAttributeKey()) {
+							if (key.startsWith("nodeData")) {
+								Object value = node.getAttribute(key);
+								String tempVal = key.substring(key.lastIndexOf(".") + 1) + " : " + value.toString();
+								if (tempVal.length() > maxToolTipLength) {
+									maxToolTipLength = tempVal.length();
+								}
 
-				if (curElement != null) {
-					Node node = graph.getNode(curElement.getId());
-					String result = "<html><table>";
-					int maxToolTipLength = 0;
-					for (String key : node.getEachAttributeKey()) {
-						if (key.startsWith("nodeData")) {
-							Object value = node.getAttribute(key);
-							String tempVal = key.substring(key.lastIndexOf(".") + 1) + " : " + value.toString();
-							if (tempVal.length() > maxToolTipLength) {
-								maxToolTipLength = tempVal.length();
+								result += "<tr><td>" + key.substring(key.lastIndexOf(".") + 1) + "</td>" + "<td>" + value.toString() + "</td></tr>";
 							}
-
-							result += "<tr><td>" + key.substring(key.lastIndexOf(".") + 1) + "</td>" + "<td>" + value.toString() + "</td></tr>";
 						}
+						result += "</table></html>";
+						view.setToolTipText(result);
 					}
-					result += "</table></html>";
-					view.setToolTipText(result);
-				}
 			}
 
 			@Override
@@ -920,6 +946,7 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 						popUp.add(navigateToJava);
 						popUp.add(showInUnitView);
 						popUp.add(setCustomAttribute);
+						popUp.add(stepBack);
 						popUp.add(followCall);
 						popUp.add(followReturn);
 						popUp.addPopupMenuListener(new PopupMenuListener() {
@@ -933,6 +960,11 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 								Node curr = graph.getNode(curElement.getId());
 								Object node = curr.getAttribute("nodeUnit");
 								if (node instanceof VFNode) {
+									if(((VFNode) node).getVFUnit().getOutSet() != null) {
+										stepBack.setVisible(true);
+									} else {
+										stepBack.setVisible(false);
+									}
 									if (((Stmt) ((VFNode) node).getUnit()).containsInvokeExpr()) {
 										followCall.setVisible(true);
 										followReturn.setVisible(false);
@@ -950,12 +982,14 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 							public void popupMenuCanceled(PopupMenuEvent arg0) {
 								followCall.setVisible(false);
 								followReturn.setVisible(false);
+								stepBack.setVisible(false);
 							}
 
 							@Override
 							public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {
 								followCall.setVisible(false);
 								followReturn.setVisible(false);
+								stepBack.setVisible(false);
 							}
 
 						});
@@ -981,20 +1015,31 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 						}
 					}
 				} else if (e.getButton() == MouseEvent.BUTTON1 && CFG && !((e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK)) {
-					Object node = curr.getAttribute("nodeUnit");
-					NavigationHandler handler = new NavigationHandler();
-					if (node instanceof VFNode) {
-						ArrayList<VFUnit> units = new ArrayList<>();
-						units.add(((VFNode) node).getVFUnit());
-						handler.highlightJimpleSource(units);
-						handler.highlightJavaSource(units.get(0));
+					if(curr != null) {
+						Object node = curr.getAttribute("nodeUnit");
+						NavigationHandler handler = new NavigationHandler();
+						if (node instanceof VFNode) {
+							ArrayList<VFUnit> units = new ArrayList<>();
+							units.add(((VFNode) node).getVFUnit());
+							handler.highlightJimpleSource(units);
+							handler.highlightJavaSource(units.get(0));
 
-						ArrayList<VFNode> nodes = new ArrayList<>();
-						nodes.add((VFNode) node);
-						try {
-							dataModel.filterGraph(nodes, true, true, null);
-						} catch (Exception e1) {
-							e1.printStackTrace();
+							ArrayList<VFNode> nodes = new ArrayList<>();
+							nodes.add((VFNode) node);
+							try {
+								dataModel.filterGraph(nodes, true, true, null);
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+						}
+					} else {
+						if(curElement.getSelectorType().equals(Selector.Type.SPRITE)) {
+							Sprite choice = sman.getSprite(curElement.toString());
+							String fqn = choice.getAttribute("unit");
+							//for(int i = 1; i <= sman.getSpriteCount(); i++) {
+							//	sman.removeSprite("S"+i);
+							//}							
+							dataModel.returnPredecessor(fqn);
 						}
 					}
 				} else if (e.getButton() == MouseEvent.BUTTON1 && (e.getModifiers() & ActionEvent.CTRL_MASK) == ActionEvent.CTRL_MASK) {
@@ -1167,10 +1212,16 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	 */
 	private void filterGraphNodes(List<VFNode> nodes, boolean selection, boolean panToNode, String uiClassForFilteredNodes) {
 		boolean panned = false;
+		while(sman.getSpriteCount() > 0) {
+			Sprite curr = sman.getSprite("S"+sman.getSpriteCount());
+			curr.detach();
+			sman.removeSprite(curr.getId());
+		}
 		if (uiClassForFilteredNodes == null) {
 			uiClassForFilteredNodes = "filter";
 		}
 		Iterable<? extends Node> graphNodes = graph.getEachNode();
+		int spriteID = 0;
 		for (Node node : graphNodes) {
 			if (node.hasAttribute("ui.class")) {
 				node.removeAttribute("ui.class");
@@ -1180,6 +1231,13 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 					if (selection) {
 						node.removeAttribute("ui.color");
 						node.addAttribute("ui.class", uiClassForFilteredNodes);
+						if(uiClassForFilteredNodes.equals("stepBack")) {
+							spriteID++;
+							Sprite sprite = sman.addSprite("S"+spriteID);
+							sprite.addAttribute("unit", vfNode.getVFUnit().getFullyQualifiedName());
+							sprite.attachToNode(node.getId());
+							sprite.setPosition(Units.PX, -175, 0, 0);
+						}
 					}
 					if (!panned && panToNode) {
 						this.panToNode(node.getId());
@@ -1485,6 +1543,21 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void handleEvent(Event event) {
+		if (event.getTopic().contentEquals(DataModel.EA_TOPIC_DATA_CHOICE_REQUIRED)) {
+			List<VFNode> potentialPredecessors = (List<VFNode>) event.getProperty("options");
+			boolean updateCfg = (boolean) event.getProperty("update");
+			if(updateCfg) {
+				VFUnit currentUnit = (VFUnit) event.getProperty("current");
+				ControlFlowGraph cfg = currentUnit.getVfMethod().getControlFlowGraph();
+				cfg.addTemporaryNodes(potentialPredecessors);
+				try {
+					renderMethodCFG(cfg, true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			filterGraphNodes(potentialPredecessors, true, false, "stepBack");
+		}
 		if (event.getTopic().contentEquals(DataModel.EA_TOPIC_DATA_MODEL_CHANGED)) {
 			renderICFG((ICFGStructure) event.getProperty("icfg"));
 		}

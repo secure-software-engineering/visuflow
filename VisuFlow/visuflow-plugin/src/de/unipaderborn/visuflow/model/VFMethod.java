@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import de.unipaderborn.visuflow.Logger;
+import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.model.graph.ControlFlowGraph;
 import soot.Body;
 import soot.SootMethod;
@@ -15,6 +17,7 @@ import soot.SootMethod;
  */
 public class VFMethod {
 
+	private Logger logger = Visuflow.getDefault().getLogger();
 	protected SootMethod wrapped;
 	private List<VFUnit> units = new ArrayList<>();
 	private List<VFUnit> incomingEdges = new ArrayList<>();
@@ -120,5 +123,26 @@ public class VFMethod {
 			}
 		}
 		throw new UnitNotFoundException("There is no unit after " + unit.getFullyQualifiedName());
+	}
+	
+	public VFUnit getUnitBefore(VFUnit unit) {
+		if(units.get(0).getFullyQualifiedName().equals(unit.getFullyQualifiedName())) {
+			List<VFUnit> incomingEdges = this.getIncomingEdges();
+			if(incomingEdges.size() == 1) {
+				return incomingEdges.get(0);
+			} else {
+				for(int i = 0; i < incomingEdges.size(); i++) {
+					logger.info("In VFMethod -> getUnitBefore -> first element of method. Option " + i + ": " + incomingEdges.get(i).getFullyQualifiedName());
+				}
+			}
+			//TODO relay determination of the predecessor unit to the predecessor method
+			return units.get(0);
+		}
+		for(int i = 1; i < units.size(); i++) {
+			if(units.get(i).getFullyQualifiedName().equals(unit.getFullyQualifiedName())) {
+				return units.get(i-1);
+			}
+		}
+		throw new UnitNotFoundException("Unit " + unit.getFullyQualifiedName() + " not found");
 	}
 }

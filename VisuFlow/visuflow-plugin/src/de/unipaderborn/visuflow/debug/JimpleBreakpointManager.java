@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -43,7 +44,9 @@ import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.VisuflowConstants;
 import de.unipaderborn.visuflow.debug.BreakpointLocator.BreakpointLocation;
 import de.unipaderborn.visuflow.model.DataModel;
+import de.unipaderborn.visuflow.model.VFNode;
 import de.unipaderborn.visuflow.model.VFUnit;
+import de.unipaderborn.visuflow.model.impl.EventDatabase;
 import de.unipaderborn.visuflow.util.ServiceUtil;
 
 public class JimpleBreakpointManager implements VisuflowConstants, IResourceChangeListener, EventHandler {
@@ -54,6 +57,9 @@ public class JimpleBreakpointManager implements VisuflowConstants, IResourceChan
 
 	private List<JimpleBreakpoint> breakpoints;
 	private BreakpointLocator breakpointLocator = new BreakpointLocator();
+	private VFUnit backwardsMarker;
+	private EventDatabase database;
+	private HashMap<VFUnit, VFUnit> pathSteppedBack = new HashMap<VFUnit, VFUnit>();
 
 	private IJavaThread suspendedThread;
 	private IJavaBreakpoint suspendedAtBreakpoint;
@@ -323,16 +329,71 @@ public class JimpleBreakpointManager implements VisuflowConstants, IResourceChan
 
 	@Override
 	public void handleEvent(Event event) {
+		if(database == null) {
+			database = EventDatabase.getInstance();
+		}
 		String topic = event.getTopic();
 		if(topic.equals(EA_TOPIC_DEBUGGING_ACTION_RESUME)) {
 			handleResumeEvent();
 		} else if(topic.equals(EA_TOPIC_DEBUGGING_ACTION_STEP_OVER)) {
 			handleStepOverEvent();
+		} else if(topic.equals(EA_TOPIC_DEBUGGING_ACTION_STEP_BACK)) {
+			handleStepBackEvent();
+		} else if(topic.equals(EA_TOPIC_DEBUGGING_ACTION_PATH_CHOSEN)) {
+			String fqn = (String) event.getProperty("choice");
+			DataModel dataModel = ServiceUtil.getService(DataModel.class);
+			VFUnit choice = dataModel.getVFUnit(fqn);
+			choice.getVfMethod().getControlFlowGraph().removeTemporaryNodes();
+			pathSteppedBack.put(choice, backwardsMarker);
+			stepTo(choice, false);
+		} else if(topic.equals(EA_TOPIC_DEBUGGING_ACTION_STEP_TO_UNIT)) {
+			boolean direction = (boolean) event.getProperty("direction");
+			VFUnit destination = (VFUnit) event.getProperty("destination");
+			stepTo(destination, direction);			
 		}
+	}
+	
+	private void stepTo(VFUnit destination, boolean direction) {
+		backwardsMarker = destination;
+		if(direction) {
+			database.stepOver(backwardsMarker);
+		} else {
+			database.stepBack(backwardsMarker);
+		}
+		VFNode nodeBefore = new VFNode(backwardsMarker, 0);
+		List<VFNode> highlightUnit = new ArrayList<>();
+		highlightUnit.add(nodeBefore);
+		ServiceUtil.getService(DataModel.class).filterGraph(highlightUnit, true, true, "debugHighlight");
+	}
+	
+	private void handleStepBackEvent() {
+		DataModel dataModel = ServiceUtil.getService(DataModel.class);
+		try {
+			if(backwardsMarker == null) {
+				IMarker marker = suspendedAtBreakpoint.getMarker();
+				String unitFqn = (String) marker.getAttribute("Jimple.unit.fqn");
+				backwardsMarker = dataModel.getVFUnit(unitFqn);
+			}			
+		} catch(Exception e) {
+			logger.error("Couldn't execute \"step back\" ", e);
+		}
+		VFUnit predecessor = dataModel.findPredecessor(backwardsMarker.getFullyQualifiedName());
+		if(predecessor == null) {
+			// this means that the user has to choose between different paths to step back - have to wait for the response
+			return;
+		} else {
+			if(backwardsMarker.equals(backwardsMarker.getVfMethod().getUnits().get(0))) {
+				pathSteppedBack.put(predecessor, backwardsMarker);
+			}
+			backwardsMarker = predecessor;
+		}
+		stepTo(backwardsMarker, false);
 	}
 
 	private void handleResumeEvent() {
 		try {
+			database.resume();
+			backwardsMarker = null;
 			removeTemporaryBreakpoints();
 			suspendedThread.resume();
 		} catch (Exception e) {
@@ -352,7 +413,21 @@ public class JimpleBreakpointManager implements VisuflowConstants, IResourceChan
 				// no unit fqn, we don't know, where we are
 				return;
 			}
+			
+			// handle stepping over in case we stepped back before
+			if(!database.getUpToDate()) {
+				if(pathSteppedBack.containsKey(backwardsMarker)) {
+					VFUnit successor = pathSteppedBack.get(backwardsMarker);
+					pathSteppedBack.remove(backwardsMarker);
+					backwardsMarker = successor;
+				} else {
+					backwardsMarker = this.findNextUnit(backwardsMarker.getFullyQualifiedName(), 1);
+				}
+				stepTo(backwardsMarker, true);
+				return;
+			}
 
+			backwardsMarker = null;
 			int offset = 1;
 			UnitLocation location = null;
 			while(true) {

@@ -6,6 +6,10 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,6 +17,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.unipaderborn.visuflow.Logger;
 import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.model.DataModel;
+import de.unipaderborn.visuflow.model.VFUnit;
+import de.unipaderborn.visuflow.model.impl.EventDatabase;
 import de.unipaderborn.visuflow.util.ServiceUtil;
 
 public class MonitoringServer {
@@ -22,6 +28,7 @@ public class MonitoringServer {
 	private Thread t;
 	private boolean running = true;
 	private DataModel dataModel = ServiceUtil.getService(DataModel.class);
+	private EventDatabase eventDatabase = EventDatabase.getInstance();
 	private Logger logger = Visuflow.getDefault().getLogger();
 	private Lock lock = new ReentrantLock();
 
@@ -53,8 +60,34 @@ public class MonitoringServer {
 							String unitFqn = in.readUTF();
 							String inSet = in.readUTF();
 							String outSet = in.readUTF();
-							dataModel.setInSet(unitFqn, "in", inSet);
-							dataModel.setOutSet(unitFqn, "out", outSet);
+							VFUnit unit = dataModel.getVFUnit(unitFqn);
+							if(unit != null) {
+								dataModel.setInSet(unitFqn, "in", inSet);
+								dataModel.setOutSet(unitFqn, "out", outSet);
+								dataModel.setCurrentUnit(unit);
+								
+								if(inSet.equals(outSet)) {
+									eventDatabase.addEvent(unitFqn, false, null, false, null);
+								} else {
+									List<String> inSetList = parseSet(inSet);
+									List<String> outSetList = parseSet(outSet);
+									Iterator<String> iterateInSet = inSetList.iterator();
+									// remove all coincident data-flow facts
+									while(iterateInSet.hasNext()) {
+										String currentInItem = iterateInSet.next();
+										Iterator<String> iterateOutSet = outSetList.iterator();
+										while(iterateOutSet.hasNext()) {
+											String currentOutItem = iterateOutSet.next();
+											if(currentInItem.equals(currentOutItem)) {
+												iterateInSet.remove();
+												iterateOutSet.remove();
+												break;
+											}
+										}
+									}
+									eventDatabase.addEvent(unitFqn, !outSetList.isEmpty(), outSetList, !inSetList.isEmpty(), inSetList);
+								}
+							}
 						}
 					}
 				} catch (EOFException e) {
@@ -103,5 +136,16 @@ public class MonitoringServer {
 				logger.error("Couldn't close monitoring server connection", e);
 			}
 		}
+	}
+	
+	/**
+	 * Parses the String of data flow facts into a list of data flow facts
+	 * @param originalSet The received set as String, created by Soot
+	 * @return The formated into data-flow facts
+	 */
+	private List<String> parseSet(String originalSet){
+		originalSet = originalSet.substring(1, originalSet.length()-1);
+		List<String> result = new ArrayList<String>(Arrays.asList(originalSet.split(", ")));
+		return result;
 	}
 }

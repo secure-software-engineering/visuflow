@@ -50,7 +50,6 @@ import de.unipaderborn.visuflow.util.ServiceUtil;
  *
  */
 public class ResultView extends ViewPart implements EventHandler {
-
 	/**
 	 * table which contains the results of the analysis
 	 */
@@ -132,8 +131,9 @@ public class ResultView extends ViewPart implements EventHandler {
 
 			@Override
 			public void handleEvent(org.eclipse.swt.widgets.Event event) {
-				if (highlightNodes.getSelection())
+				if (highlightNodes.getSelection()) {
 					highlightNodesOnGraph(highlightNodes.getSelection());
+				}
 			}
 		});
 
@@ -157,8 +157,8 @@ public class ResultView extends ViewPart implements EventHandler {
 	}
 
 	private void createColumns(final Composite parent, final TableViewer viewer) {
-		String[] titles = { "Selection", "Unit", "Unit Type", "In-Set", "Out-Set", "Customized Attr." };
-		int[] bounds = { 100, 100, 100, 100, 100, 150 };
+		String[] titles = { "Selection", "Unit", "Unit Type", "In-Set", "Out-Set", "Customized Attr."};
+		int[] bounds = { 100, 100, 100, 100, 100, 150};
 
 		TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);
 		col.setLabelProvider(new ColumnLabelProvider() {
