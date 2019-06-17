@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -16,11 +18,13 @@ public class MonitorClient {
 	private Socket socket;
 	private InputStream in;
 	private OutputStream out;
-	private DataOutputStream writer;
-	private DataInputStream reader;
-	private BlockingQueue<String[]> queue = new LinkedBlockingQueue<>();
+//	private DataOutputStream writer;
+//	private DataInputStream reader;
+	private BlockingQueue<Object[]> queue = new LinkedBlockingQueue<>();
 	private Thread sendThread;
 	boolean running = true;
+	private ObjectOutputStream objWriter;
+	private ObjectInputStream objReader;
 
 	private MonitorClient() {}
 	public static MonitorClient getInstance() {
@@ -31,8 +35,8 @@ public class MonitorClient {
 		socket = new Socket("localhost", 6543);
 		out = socket.getOutputStream();
 		in = socket.getInputStream();
-		writer = new DataOutputStream(out);
-		reader = new DataInputStream(in);
+		objWriter = new ObjectOutputStream(out);;
+		objReader = new ObjectInputStream(in);	
 	}
 
 	public void start() {
@@ -40,13 +44,22 @@ public class MonitorClient {
 			@Override
 			public void run() {
 				while(running) {
+					
 					try {
-						String[] msg = queue.take();
-						writer.writeUTF(msg[0]); // msg type
-						writer.writeUTF(msg[1]); // fqn
-						writer.writeUTF(msg[2]); // inset
-						writer.writeUTF(msg[3]); // outset
-						writer.flush();
+						Object[] msg = queue.take();
+						if(msg[0].toString().equals("UNIT_UPDATE")) {
+							objWriter.writeUTF(msg[0].toString()); // msg type
+							objWriter.writeUTF(msg[1].toString()); // fqn
+							objWriter.writeUTF(msg[2].toString()); // inset
+							objWriter.writeUTF(msg[3].toString()); // outset
+							objWriter.writeUTF(msg[4].toString()); // unit type
+							objWriter.flush();
+						} else {
+							objWriter.writeUTF(msg[0].toString());
+							objWriter.writeUTF(msg[1].toString());
+							objWriter.writeUTF(msg[2].toString());
+							objWriter.flush();
+						}
 					} catch (InterruptedException ie) {
 						if(running) {
 							// if state is running and this threads gets interrupted, we don't
@@ -64,27 +77,38 @@ public class MonitorClient {
 	}
 
 	public void send(String[] msg) throws IOException {
-		writer.writeUTF(msg[0]); // msg type
-		writer.writeUTF(msg[1]); // fqn
-		writer.writeUTF(msg[2]); // inset
-		writer.writeUTF(msg[3]); // outset
+		objWriter.writeUTF(msg[0]); // msg type
+		objWriter.writeUTF(msg[1]); // fqn
+		objWriter.writeUTF(msg[2]); // inset
+		objWriter.writeUTF(msg[3]); // outset
+		objWriter.writeUTF(msg[4]); // unit type
 	}
 
-	public void sendAsync(String fqn, String inset, String outset) throws IOException, InterruptedException {
-		String[] msg = new String[4];
+	public void sendAsync(String fqn, String inset, String outset, String unitType) throws IOException, InterruptedException {
+		String[] msg = new String[5];
+	//	System.out.println("in sendasync "+fqn+" ,"+inset+" ,"+outset);
 		msg[0] = "UNIT_UPDATE";
 		msg[1] = fqn;
 		msg[2] = inset;
 		msg[3] = outset;
+		msg[4] = unitType;
+		queue.put(msg);
+	}
+
+	public void sendAsyncClasses(String fileName, String text) throws IOException, InterruptedException {
+		Object[] msg = new Object[3];
+		msg[0] = "jimpleFile";
+		msg[1] = fileName;
+		msg[2] = text;
 		queue.put(msg);
 	}
 
 	public String readResponse() throws IOException {
-		return reader.readUTF();
+		return objReader.readUTF();
 	}
 
 	public void close() throws IOException, InterruptedException {
-		queue.add(new String[] {"CLOSE", "", "", ""});
+		queue.add(new String[] {"CLOSE", "", "", "", ""});
 		String response = readResponse();
 		if(!response.equals("OK")) {
 			System.err.println("Server didn't respond with OK to CLOSE");
@@ -96,7 +120,7 @@ public class MonitorClient {
 		// solution to close the client
 		running = false;
 		sendThread.interrupt();
-		writer.flush();
+		objWriter.flush();
 		socket.close();
 	}
 }

@@ -266,7 +266,7 @@ public class TargetHandlerDialog extends TitleAreaDialog {
 			e.printStackTrace();
 		}
 		super.okPressed();
-		ServiceUtil.getService(DataModel.class).triggerProjectRebuild();
+	//	ServiceUtil.getService(DataModel.class).triggerProjectRebuild();
 
 	}
 

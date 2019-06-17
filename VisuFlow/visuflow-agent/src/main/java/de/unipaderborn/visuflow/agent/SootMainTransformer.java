@@ -47,7 +47,7 @@ public class SootMainTransformer implements ClassFileTransformer {
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
-		}
+		} 
 
 		// no transformation
 		return null;

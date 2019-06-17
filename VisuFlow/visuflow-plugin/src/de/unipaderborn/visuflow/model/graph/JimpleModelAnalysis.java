@@ -62,7 +62,6 @@ public class JimpleModelAnalysis {
 		Transform transform = new Transform("wjap.myTransform", new SceneTransformer() {
 			@Override
 			protected void internalTransform(String phase, Map<String, String> arg1) {
-
 				String callGraphPref = GlobalSettings.get("CallGraphOption");
 				if("CHA".equalsIgnoreCase(callGraphPref))
 				{
@@ -122,6 +121,7 @@ public class JimpleModelAnalysis {
 			private void createJimpleHierarchyWithCfgs(List<VFClass> vfClasses) {
 				//TODO cuncurrent modification exception comes from here.
 				Chain<SootClass> classes = Scene.v().getClasses();
+
 				for (SootClass sootClass : classes) {
 					if (sootClass.isJavaLibraryClass() || sootClass.isLibraryClass()) {
 						continue;
@@ -219,7 +219,6 @@ public class JimpleModelAnalysis {
 				Targets tc = new Targets(cg.edgesOutOf(source));
 				while (tc.hasNext()) {
 					SootMethod destination = (SootMethod) tc.next();
-					// System.out.println(destination+" is java library "+destination.isJavaLibraryMethod());
 					if (!destination.isJavaLibraryMethod()) {
 						boolean edgeConnection = false;
 						Iterator<VFMethodEdge> edgeIterator = methodGraph.listEdges.iterator();
@@ -280,6 +279,7 @@ public class JimpleModelAnalysis {
 		});
 
 		PackManager.v().getPack("wjap").add(transform);
+
 		// Run Soot
 		Main.main(sootString);
 		Visuflow.getDefault().getLogger().info("Running internal analysis: " + Arrays.toString(sootString));

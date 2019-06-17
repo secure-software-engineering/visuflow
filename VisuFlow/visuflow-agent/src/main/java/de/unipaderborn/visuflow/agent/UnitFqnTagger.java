@@ -70,9 +70,56 @@ public class UnitFqnTagger implements ClassFileTransformer {
 			}
 
 			return null;
-		} else {
-			// no transformation
+		} else if (className.length() >0) {
+			try {
+
+				if(className.startsWith("soot/")) {
+					return null;
+				}
+
+				pool.insertClassPath(new ByteArrayClassPath(className, classfileBuffer));
+				CtClass cclass = pool.get(className.replaceAll("/", "."));
+				CtClass superClass = cclass;
+				do {
+					superClass = superClass.getSuperclass();
+					if (superClass == null) {
+						break;
+					}
+
+					if (superClass.getName().equals("soot.Transformer")) {
+
+						cclass.addMethod(CtNewMethod.make("public void getMethodsJimple() {"
+							+ "java.lang.Object[] jimpClasses = soot.Scene.v().getClasses().toArray();"
+							+"java.util.List classList = java.util.Arrays.asList(jimpClasses);"
+							+ "java.util.Iterator itClasses = classList.iterator();"
+							+ "java.lang.String all = \"\";"
+							+ "while(itClasses.hasNext()){"
+							+ "soot.SootClass sClass = (soot.SootClass) itClasses.next();"
+							+ "if (sClass.isJavaLibraryClass() || sClass.isLibraryClass()) {"
+							+ "continue;}"
+							+ "all = sClass.getName();"
+							+ "all = all + \"{\";"
+							+ "java.util.Iterator itMethods = sClass.getMethods().iterator();"
+							+ "while(itMethods.hasNext()){"
+							+ "all = all + ((soot.SootMethod) itMethods.next()).retrieveActiveBody().toString();"
+							+ " } all = all + \"}\"; de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsyncClasses(sClass.getName()+\".jimple\", all);"
+							+ "all = \"\";}}", cclass));
+
+						CtMethod method = cclass.getDeclaredMethod("internalTransform");
+						method.insertBefore("getMethodsJimple();");
+						if (!cclass.isFrozen()) {
+							return cclass.toBytecode();
+						} else {
+							throw new RuntimeException(className + " is frozen");
+						}
+
+					}
+				} while (superClass != null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			return null;
+		} else {return null;}
 		}
-	}
+
 }
