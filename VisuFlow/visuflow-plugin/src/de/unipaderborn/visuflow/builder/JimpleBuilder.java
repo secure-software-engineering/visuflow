@@ -159,13 +159,13 @@ public class JimpleBuilder extends IncrementalProjectBuilder {
 		executeBuild = false;
 		if(getProject() != null && getProject().getName().equals(GlobalSettings.get("AnalysisProject"))){
 			if (kind == FULL_BUILD) {
-			//	fullBuild(monitor);
+				fullBuild(monitor);
 			} else {
 				IResourceDelta delta = getDelta(getProject());
 				if (delta == null) {
 					fullBuild(monitor);
 				} else {
-				//	checkForBuild(delta, monitor);
+					checkForBuild(delta, monitor);
 				}
 			}
 		}
@@ -194,11 +194,10 @@ public class JimpleBuilder extends IncrementalProjectBuilder {
 			}
 			classpath = location + classpath;
 			String[] sootString = new String[] { "-cp", classpath, "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", "-process-dir",
-					location, "-src-prec", "only-class", "-w", "-output-format", "none", "-keep-line-number",
-					/* , "tag.ln","on" */ };
+					location, "-src-prec", "only-class", "-w", "-output-format", "J", "-keep-line-number", "-output-dir",
+					folder.getLocation().toOSString()/* , "tag.ln","on" */ };
 			ICFGStructure icfg = new ICFGStructure();
 			JimpleModelAnalysis analysis = new JimpleModelAnalysis();
-			GlobalSettings.put("outputDir", folder.getLocation().toOSString());
 			analysis.setSootString(sootString);
 			List<VFClass> jimpleClasses = new ArrayList<>();
 			try {

@@ -276,15 +276,11 @@ public class DataModelImpl implements DataModel {
 	 * @see de.unipaderborn.visuflow.model.DataModel#setInSet(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setInSet(String unitFqn, String name, String value, String unitType) {
+	public void setInSet(String unitFqn, String name, String value) {
 		VFUnit vfUnit = getVFUnit(unitFqn);
 		if (vfUnit != null) {
-			if(unitType.equals("forIde")) {
-			//	vfUnit.setInSetIde(value);
-			} else {
-				vfUnit.setInSet(value);
-				fireUnitChanged(vfUnit);
-			}
+			vfUnit.setInSet(value);
+			fireUnitChanged(vfUnit);
 		} else {
 			logger.info("Unit not found " + unitFqn);
 		}
@@ -294,15 +290,11 @@ public class DataModelImpl implements DataModel {
 	 * @see de.unipaderborn.visuflow.model.DataModel#setOutSet(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setOutSet(String unitFqn, String name, String value, String unitType) {
+	public void setOutSet(String unitFqn, String name, String value) {
 		VFUnit vfUnit = getVFUnit(unitFqn);
 		if (vfUnit != null) {
-			if(unitType.equals("forIde")) {
-			//	vfUnit.setOutSetIde(value);
-			} else {
-				vfUnit.setOutSet(value);
-				fireUnitChanged(vfUnit);
-			}
+			vfUnit.setOutSet(value);
+			fireUnitChanged(vfUnit);
 		} else {
 			logger.info("Unit not found " + unitFqn);
 		}

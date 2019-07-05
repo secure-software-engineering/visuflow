@@ -25,7 +25,6 @@ public class SootFlowAnalysisTransformer implements ClassFileTransformer {
 
 		// don't transform analyses in the soot framework
 		if(className.startsWith("soot/")) {
-
 			return null;
 		}
 
@@ -65,6 +64,6 @@ public class SootFlowAnalysisTransformer implements ClassFileTransformer {
 		flowThrough.insertAfter("fqn= new String($2.getTag(\"Fully Qualified Name\").getValue());");
 		flowThrough.insertAfter("in = $1.toString();");
 		flowThrough.insertAfter("out = $3.toString();");
-		flowThrough.insertAfter("de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out, \"\");");
+		flowThrough.insertAfter("de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out);");
 	}
 }

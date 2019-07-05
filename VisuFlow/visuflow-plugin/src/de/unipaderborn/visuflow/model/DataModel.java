@@ -137,8 +137,8 @@ public interface DataModel {
 	public void triggerProjectRebuild();
 	public void refreshView();
 
-	public void setInSet(String unitFqn, String name, String value, String unitType);
-	public void setOutSet(String unitFqn, String name, String value, String unitType);
+	public void setInSet(String unitFqn, String name, String value);
+	public void setOutSet(String unitFqn, String name, String value);
 	public void setCurrentUnit(VFUnit unit);
 	public VFUnit getCurrentUnit();
 	public void HighlightJimpleUnit(VFNode node);

@@ -49,23 +49,9 @@ public class HerosIdeTarnsformer implements ClassFileTransformer {
 		method.addLocalVariable("fqn", string);
 		method.addLocalVariable("in", string);
 		method.addLocalVariable("out", string);
-		method.insertAt(601, "fqn= new String(((soot.Unit)n).getTag(\"Fully Qualified Name\").getValue());" +
-				"in = d2.toString();" +
-				"out = res.toString();");
-
-		System.out.println("in enhance ide "+method.getName());
-		method.insertAt(602, "out += \"{\";");
-		method.insertAt(604, "out += fprime.computeTarget(new Integer(0)).toString() + \",\";");
-		method.insertAt(606, "de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out, \"forIde\");");
-		
-		method = c.getDeclaredMethod("processCall");
-		System.out.println("in enhance ide "+method.getName());
-		method.addLocalVariable("fqn", string);
-		method.addLocalVariable("in", string);
-		method.addLocalVariable("out", string);
-		method.insertAt(359, "fqn= sP.toString();" +
+		method.insertAt(601, "fqn= new String(((soot.Unit)m).getTag(\"Fully Qualified Name\").getValue());" +
 				"in = d2.toString();" +
 				"out = res.toString();" +
-				"de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out, \"forIde\");");
+				"de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out);");
 	}
 }
