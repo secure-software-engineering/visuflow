@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -193,9 +194,14 @@ public class JimpleBuilder extends IncrementalProjectBuilder {
 				}
 			}
 			classpath = location + classpath;
-			String[] sootString = new String[] { "-cp", classpath, "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", "-process-dir",
-					location, "-src-prec", "only-class", "-w", "-output-format", "J", "-keep-line-number", "-output-dir",
-					folder.getLocation().toOSString()/* , "tag.ln","on" */ };
+//			String[] sootString = new String[] { "-cp", classpath, "-exclude", "javax", "-allow-phantom-refs", "-no-bodies-for-excluded", "-process-dir",
+//												location, "-src-prec", "only-class", "-w", "-output-format", "none", "-keep-line-number"};
+			
+			String[] sootString = new String[] { "-cp", classpath, "-process-dir", location, "-output-format", "none", "-keep-line-number" };
+
+			sootString = (String[]) ArrayUtils.addAll(sootString, GlobalSettings.get("sootSettings").replace(" ", "").split(","));
+			
+			GlobalSettings.put("outputDir", folder.getLocation().toOSString());
 			ICFGStructure icfg = new ICFGStructure();
 			JimpleModelAnalysis analysis = new JimpleModelAnalysis();
 			analysis.setSootString(sootString);

@@ -3,9 +3,14 @@ package de.unipaderborn.visuflow.debug.monitoring;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -14,8 +19,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+
 import de.unipaderborn.visuflow.Logger;
 import de.unipaderborn.visuflow.Visuflow;
+import de.unipaderborn.visuflow.builder.GlobalSettings;
 import de.unipaderborn.visuflow.model.DataModel;
 import de.unipaderborn.visuflow.model.VFUnit;
 import de.unipaderborn.visuflow.model.impl.EventDatabase;
@@ -60,10 +71,11 @@ public class MonitoringServer {
 							String unitFqn = in.readUTF();
 							String inSet = in.readUTF();
 							String outSet = in.readUTF();
+							String unitType = in.readUTF();
 							VFUnit unit = dataModel.getVFUnit(unitFqn);
 							if(unit != null) {
-								dataModel.setInSet(unitFqn, "in", inSet);
-								dataModel.setOutSet(unitFqn, "out", outSet);
+								dataModel.setInSet(unitFqn, "in", inSet, unitType);
+								dataModel.setOutSet(unitFqn, "out", outSet, unitType);
 								dataModel.setCurrentUnit(unit);
 								
 								if(inSet.equals(outSet)) {
@@ -88,12 +100,23 @@ public class MonitoringServer {
 									eventDatabase.addEvent(unitFqn, !outSetList.isEmpty(), outSetList, !inSetList.isEmpty(), inSetList);
 								}
 							}
+						} else if(msgType.equals("jimpleFile")) {
+							String fileName = in.readUTF();
+							String fileTxt = in.readUTF();
+							IFolder outputFolder = ResourcesPlugin.getWorkspace().getRoot().getProject(GlobalSettings.get("AnalysisProject")).getFolder("sootOutput");
+							Path file = Paths.get(outputFolder.getLocation().toOSString() + File.separator + fileName);
+							Files.write(file, fileTxt.getBytes("utf-8"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+							outputFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
+
 						}
 					}
 				} catch (EOFException e) {
 					logger.info("No more data. The client probably closed the connection");
 				} catch (IOException e) {
 					logger.error("Monitoring server threw an exception", e);
+				} catch (CoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		};
@@ -144,7 +167,7 @@ public class MonitoringServer {
 	 * @return The formated into data-flow facts
 	 */
 	private List<String> parseSet(String originalSet){
-		originalSet = originalSet.substring(1, originalSet.length()-1);
+		originalSet = originalSet.length() > 1 ? originalSet.substring(1, originalSet.length()-1) : originalSet;
 		List<String> result = new ArrayList<String>(Arrays.asList(originalSet.split(", ")));
 		return result;
 	}

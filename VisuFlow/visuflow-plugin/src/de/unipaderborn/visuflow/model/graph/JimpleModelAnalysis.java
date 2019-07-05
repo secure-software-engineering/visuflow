@@ -59,6 +59,9 @@ public class JimpleModelAnalysis {
 	 **/
 	public void createICFG(final ICFGStructure methodGraph, List<VFClass> vfClasses) {
 		G.reset();
+		if(GlobalSettings.get("useOriginalVariables").equals("true")) {
+			Options.v().setPhaseOption("jb", "use-original-names:true");
+		}
 		Transform transform = new Transform("wjap.myTransform", new SceneTransformer() {
 			@Override
 			protected void internalTransform(String phase, Map<String, String> arg1) {

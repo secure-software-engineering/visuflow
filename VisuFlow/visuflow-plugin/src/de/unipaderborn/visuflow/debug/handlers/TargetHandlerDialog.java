@@ -46,8 +46,9 @@ import de.unipaderborn.visuflow.util.ServiceUtil;
  */
 public class TargetHandlerDialog extends TitleAreaDialog {
 
-	private Text containerSourceText,containerTargetText;
+	private Text containerSourceText,containerTargetText, containerSootText;
 	private Button okButton;
+	private Button[] useOriginalButtons = new Button[2];
 
 	@SuppressWarnings("unused")
 	private Text fileText;
@@ -111,6 +112,27 @@ public class TargetHandlerDialog extends TitleAreaDialog {
 			}
 		});
 
+		Label labelNames = new Label(container, SWT.NULL);
+		labelNames.setText("Use Original Variable Names:");
+		labelNames.setLayoutData(gd);
+		
+		useOriginalButtons[0] = new Button(container, SWT.RADIO);
+		useOriginalButtons[0].setSelection(true);
+		useOriginalButtons[0].setText("Yes");
+		
+		useOriginalButtons[1] = new Button(container, SWT.RADIO);
+		useOriginalButtons[1].setSelection(false);
+		useOriginalButtons[1].setText("No");
+
+		Label labelSootString = new Label(container, SWT.NULL);
+		labelSootString.setText("Soot String");
+		labelSootString.setLayoutData(gd);
+
+		containerSootText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
+		containerSootText.setLayoutData(gd);
+		
 		initialize();
 		dialogChanged();
 		return container;
@@ -255,6 +277,8 @@ public class TargetHandlerDialog extends TitleAreaDialog {
 		IJavaProject analysisProject = JavaCore.create(resourceAnalysis.getProject());
 		GlobalSettings.put("AnalysisProject", analysisProject.getProject().getName());
 		GlobalSettings.put("TargetProject", targetProject.getProject().getName());
+		GlobalSettings.put("useOriginalVariables", useOriginalButtons[0].getSelection()+"");
+		GlobalSettings.put("sootSettings", containerSootText.getText());
 		ProjectPreferences projPref = new ProjectPreferences();
 		projPref.createPreferences();
 		AddRemoveVisuFlowNatureHandler addNature = new AddRemoveVisuFlowNatureHandler();
