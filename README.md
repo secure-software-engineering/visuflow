@@ -19,6 +19,11 @@ Import the `visuflow-plugin` and `visuflow-target` projects into your "Eclipse I
 11. `Apply`
 12. `Run`
 
+In case you want to do some changes in the `visuflow-agent` project then you would have to compile the project so that you can use the new agent jar in the visuflow project. The agent project needs a third party library which can be resolved using the parent project. For this follow the steps below:
+
+1. Import `visuflow-parent` and `visuflow-agent` as an existing project.
+2. Enable the Maven dependency resolution. Right-click on the project `visuflow-parent`, then select `Configure -> Convert To Maven Project`. Do this also for the project `visuflow-agent`
+
 # Running the Analysis
 
 After the plugin have been launched import the `visuflow-uitests-analysis` and `visuflow-uitests-target` projects from the DemoApp folder into the plugin workspace. Also check the option `Copy projects into workspace` while importing them.
