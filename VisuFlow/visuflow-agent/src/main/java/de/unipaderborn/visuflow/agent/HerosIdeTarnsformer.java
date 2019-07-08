@@ -49,9 +49,12 @@ public class HerosIdeTarnsformer implements ClassFileTransformer {
 		method.addLocalVariable("fqn", string);
 		method.addLocalVariable("in", string);
 		method.addLocalVariable("out", string);
-		method.insertAt(601, "fqn= new String(((soot.Unit)m).getTag(\"Fully Qualified Name\").getValue());" +
+		method.insertAt(601, "fqn= new String(((soot.Unit)n).getTag(\"Fully Qualified Name\").getValue());" +
 				"in = d2.toString();" +
-				"out = res.toString();" +
-				"de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out);");
+				"out = res.toString();");
+
+		method.insertAt(602, "out += \"{\";");
+		method.insertAt(604, "out += fprime.computeTarget(new Integer(0)).toString() + \",\";");
+		method.insertAt(606, "de.unipaderborn.visuflow.agent.MonitorClient.getInstance().sendAsync(fqn, in, out, \"forIde\");");
 	}
 }

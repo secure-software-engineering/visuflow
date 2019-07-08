@@ -42,11 +42,19 @@ public class MonitorClient {
 				while(running) {
 					try {
 						String[] msg = queue.take();
+						if(msg[0].toString().equals("UNIT_UPDATE")) {
 						writer.writeUTF(msg[0]); // msg type
 						writer.writeUTF(msg[1]); // fqn
 						writer.writeUTF(msg[2]); // inset
 						writer.writeUTF(msg[3]); // outset
+						writer.writeUTF(msg[4].toString()); // unit type
 						writer.flush();
+						} else {
+							writer.writeUTF(msg[0].toString());
+							writer.writeUTF(msg[1].toString());
+							writer.writeUTF(msg[2].toString());
+							writer.flush();
+						}
 					} catch (InterruptedException ie) {
 						if(running) {
 							// if state is running and this threads gets interrupted, we don't
@@ -68,14 +76,25 @@ public class MonitorClient {
 		writer.writeUTF(msg[1]); // fqn
 		writer.writeUTF(msg[2]); // inset
 		writer.writeUTF(msg[3]); // outset
+		writer.writeUTF(msg[4].toString()); // unit type
 	}
 
-	public void sendAsync(String fqn, String inset, String outset) throws IOException, InterruptedException {
-		String[] msg = new String[4];
+	public void sendAsync(String fqn, String inset, String outset, String unitType) throws IOException, InterruptedException {
+		String[] msg = new String[5];
+	//	System.out.println("in sendasync "+fqn+" ,"+inset+" ,"+outset);
 		msg[0] = "UNIT_UPDATE";
 		msg[1] = fqn;
 		msg[2] = inset;
 		msg[3] = outset;
+		msg[4] = unitType;
+		queue.put(msg);
+	}
+
+	public void sendAsyncClasses(String fileName, String text) throws IOException, InterruptedException {
+		String[] msg = new String[3];
+		msg[0] = "jimpleFile";
+		msg[1] = fileName;
+		msg[2] = text;
 		queue.put(msg);
 	}
 
@@ -84,7 +103,7 @@ public class MonitorClient {
 	}
 
 	public void close() throws IOException, InterruptedException {
-		queue.add(new String[] {"CLOSE", "", "", ""});
+		queue.add(new String[] {"CLOSE", "", "", "", ""});
 		String response = readResponse();
 		if(!response.equals("OK")) {
 			System.err.println("Server didn't respond with OK to CLOSE");

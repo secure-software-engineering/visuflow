@@ -82,7 +82,7 @@ public class EventDatabase {
 		} else {
 			currentData = currentData.substring(0, currentData.length()-1);
 		}
-		dataModel.setInSet(fqn, "", currentData + "]");
+		dataModel.setInSet(fqn, "", currentData + "]", "");
 		if(event.getDeletedSet() != null) {
 			for(int j = 0; j < event.getDeletedSet().size(); j++) {
 				currentData = currentData.replace(event.getDeletedSet().get(j), "");
@@ -96,7 +96,7 @@ public class EventDatabase {
 		currentData = currentData.replace(", ,", ",");
 		currentData = currentData.replaceFirst("\\[, ", "\\[");
 		String newData = currentData + "]";
-		dataModel.setOutSet(fqn, "", newData);
+		dataModel.setOutSet(fqn, "", newData, "");
 		dataModel.setCurrentUnit(dataModel.getVFUnit(event.getUnit()));
 	}
 	
@@ -158,7 +158,7 @@ public class EventDatabase {
 				}
 				currentData = currentData.replace(", ,", ",");
 				currentData = currentData.replaceFirst("\\[,", "\\[");
-				dataModel.setOutSet(currentUnit, "", currentData + "]");
+				dataModel.setOutSet(currentUnit, "", currentData + "]", "");
 				if(tempMarker > 1) {
 					Event lastEvent = events.get(tempMarker-1);
 					if(lastEvent.getValuesAdded()) {
@@ -172,10 +172,10 @@ public class EventDatabase {
 						}
 					}
 				}				
-				dataModel.setInSet(currentUnit, "", currentData + "]");
+				dataModel.setInSet(currentUnit, "", currentData + "]", "");
 			} else {
-				dataModel.setInSet(currentUnit, "", null);
-				dataModel.setOutSet(currentUnit, "", null);
+				dataModel.setInSet(currentUnit, "", null, "");
+				dataModel.setOutSet(currentUnit, "", null, "");
 			}
 			
 			if(currentUnit.equals(dest.getFullyQualifiedName())) {

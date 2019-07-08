@@ -26,6 +26,25 @@ public class VFUnit {
 	private Map<String, String> hmCustAttr = new HashMap<>();
 	private List<VFUnit> outgoingEdges = new ArrayList<>();
 
+	private List<String> inSetIde = new ArrayList<>();
+	private List<String> outSetIde=  new ArrayList<>();
+
+	public List<String> getInSetIde() {
+		return inSetIde;
+	}
+
+	public void setInSetIde(String inSetIde) {
+		this.inSetIde.add(inSetIde);
+	}
+
+	public List<String> getOutSetIde() {
+		return outSetIde;
+	}
+
+	public void setOutSetIde(String outSetIde) {
+		this.outSetIde.add(outSetIde);
+	}
+
 	public List<VFUnit> getOutgoingEdges() {
 		return outgoingEdges;
 	}
