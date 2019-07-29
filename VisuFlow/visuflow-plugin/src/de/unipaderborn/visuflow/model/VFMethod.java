@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.graphstream.graph.Graph;
+
 import de.unipaderborn.visuflow.Logger;
 import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.model.graph.ControlFlowGraph;
+import de.unipaderborn.visuflow.model.graph.ExplodedSuperGraph;
 import soot.Body;
 import soot.SootMethod;
 
@@ -23,6 +26,7 @@ public class VFMethod {
 	private List<VFUnit> incomingEdges = new ArrayList<>();
 	private Body body;
 	private ControlFlowGraph controlFlowGraph;
+	private Graph explodedSuperGraph;
 	private int id;
 	private VFClass vfClass;
 
@@ -75,6 +79,14 @@ public class VFMethod {
 		this.controlFlowGraph = controlFLowGraph;
 	}
 
+	public Graph getExplodedSuperGraph() {
+		return explodedSuperGraph;
+	}
+
+	public void setExplodedSuperGraph(Graph explodedSuperGraph) {
+		this.explodedSuperGraph = explodedSuperGraph;
+	}
+	
 	@Override
 	public String toString() {
 		return wrapped != null ? /*wrapped.getDeclaringClass().getName()+"."+*/ wrapped.getName() : super.toString();

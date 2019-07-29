@@ -18,6 +18,7 @@ import de.unipaderborn.visuflow.Logger;
 import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.VisuflowConstants;
 import de.unipaderborn.visuflow.debug.monitoring.MonitoringServer;
+import de.unipaderborn.visuflow.model.graph.ExplodedSuperGraphGenerator;
 
 public class LaunchConfigurationDelegate extends JavaLaunchDelegate implements VisuflowConstants {
 
@@ -43,6 +44,7 @@ public class LaunchConfigurationDelegate extends JavaLaunchDelegate implements V
 		try {
 			logger.info("Waiting for monitoring server before launch");
 			if(monitoringServer.waitForServer(500)) {
+				new ExplodedSuperGraphGenerator().clearEsgSets();
 				// launch the program
 				logger.info("Launching the user analysis");
 				super.launch(configCopy, mode, launch, monitor);

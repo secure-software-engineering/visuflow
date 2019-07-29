@@ -37,6 +37,11 @@ public class VFUnit {
 		this.inSetIde.add(inSetIde);
 	}
 
+	public void clearESGSets() {
+		this.inSetIde.clear();
+		this.outSetIde.clear();
+	}
+	
 	public List<String> getOutSetIde() {
 		return outSetIde;
 	}

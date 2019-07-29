@@ -145,6 +145,7 @@ public class JimpleModelAnalysis {
 						Body body;
 						try {
 							body = sootMethod.retrieveActiveBody();
+					//		System.out.print("method body "+body.toString());
 							for (Unit unit : body.getUnits()) {
 								addFullyQualifiedName(unit, sootClass, sootMethod);
 								VFUnit currentUnit = new VFUnit(unit);

@@ -29,6 +29,7 @@ import de.unipaderborn.visuflow.Visuflow;
 import de.unipaderborn.visuflow.builder.GlobalSettings;
 import de.unipaderborn.visuflow.model.DataModel;
 import de.unipaderborn.visuflow.model.VFUnit;
+import de.unipaderborn.visuflow.model.graph.ExplodedSuperGraphGenerator;
 import de.unipaderborn.visuflow.model.impl.EventDatabase;
 import de.unipaderborn.visuflow.util.ServiceUtil;
 
@@ -66,6 +67,7 @@ public class MonitoringServer {
 							logger.info("Client closed the connection");
 							out.writeUTF("OK");
 							out.flush();
+						//	checkESG();
 							MonitoringServer.this.stop();
 						} else if(msgType.equals("UNIT_UPDATE")) {
 							String unitFqn = in.readUTF();
@@ -170,5 +172,11 @@ public class MonitoringServer {
 		originalSet = originalSet.length() > 1 ? originalSet.substring(1, originalSet.length()-1) : originalSet;
 		List<String> result = new ArrayList<String>(Arrays.asList(originalSet.split(", ")));
 		return result;
+	}
+	
+	private void checkESG() {
+		
+	//	new ExplodedSuperGraphGenerator().generateExplodedSuperGraph();
+	//	currentMethod.setExplodedSuperGraph(new ExplodedSuperGraphGenerator().generateExplodedSuperGraph(currentMethod));
 	}
 }

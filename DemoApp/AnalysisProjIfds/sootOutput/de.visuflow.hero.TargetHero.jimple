@@ -1,0 +1,80 @@
+de.visuflow.hero.TargetHero{    public void <init>()
+    {
+        de.visuflow.hero.TargetHero this;
+
+        this := @this: de.visuflow.hero.TargetHero;
+
+        specialinvoke this.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+    int increment(int)
+    {
+        de.visuflow.hero.TargetHero this;
+        int i, $stack2, $stack3;
+
+        this := @this: de.visuflow.hero.TargetHero;
+
+        i := @parameter0: int;
+
+        if i <= 4 goto label1;
+
+        $stack3 = i + 2;
+
+        return $stack3;
+
+     label1:
+        $stack2 = i + 1;
+
+        return $stack2;
+    }
+    public void entryPoint()
+    {
+        de.visuflow.hero.TargetHero this;
+        byte i;
+        short j;
+        int k;
+        java.lang.StringBuilder $stack5, $stack7;
+        java.io.PrintStream $stack6;
+        java.lang.String $stack8;
+
+        this := @this: de.visuflow.hero.TargetHero;
+
+        i = 100;
+
+        j = 200;
+
+        k = virtualinvoke this.<de.visuflow.hero.TargetHero: int increment(int)>(i);
+
+        $stack6 = <java.lang.System: java.io.PrintStream out>;
+
+        $stack5 = new java.lang.StringBuilder;
+
+        specialinvoke $stack5.<java.lang.StringBuilder: void <init>(java.lang.String)>("value of k is: ");
+
+        $stack7 = virtualinvoke $stack5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(k);
+
+        $stack8 = virtualinvoke $stack7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $stack6.<java.io.PrintStream: void println(java.lang.String)>($stack8);
+
+        return;
+    }
+    public static void main(java.lang.String[])
+    {
+        java.lang.String[] args;
+        de.visuflow.hero.TargetHero th, $stack2;
+
+        args := @parameter0: java.lang.String[];
+
+        $stack2 = new de.visuflow.hero.TargetHero;
+
+        specialinvoke $stack2.<de.visuflow.hero.TargetHero: void <init>()>();
+
+        th = $stack2;
+
+        virtualinvoke th.<de.visuflow.hero.TargetHero: void entryPoint()>();
+
+        return;
+    }
+}

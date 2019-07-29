@@ -29,6 +29,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -200,7 +201,8 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 	private JMenuItem spark;
 
 	private String nodeAttributesString = "nodeData.attributes";
-
+	private Map<String, Integer> nodeMap;
+	private boolean esg = false;
 	/**
 	 * Creates a new instance of graph manager used for rendering ICFG and CFG.
 	 *
@@ -1565,7 +1567,23 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 			VFMethod selectedMethod = (VFMethod) event.getProperty("selectedMethod");
 			boolean panToNode = (boolean) event.getProperty("panToNode");
 			try {
-				renderMethodCFG(selectedMethod.getControlFlowGraph(), panToNode);
+				
+					this.reintializeGraph();
+					createEsg(selectedMethod);
+					if (esg) {
+						this.CFG = true;
+						viewer.disableAutoLayout();
+						EsgLayout.layout(graph);
+						esg = false;
+						if (panToNode) {
+							defaultPanZoom();
+							panToNode(graph.getNodeIterator().next().getId());
+						}
+					} else {
+						renderMethodCFG(selectedMethod.getControlFlowGraph(), panToNode);
+					}
+					this.header.setText("Method CFG ----> " + ServiceUtil.getService(DataModel.class).getSelectedMethod().toString());
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1591,6 +1609,85 @@ public class GraphManager implements Runnable, ViewerListener, EventHandler {
 					}
 				}
 			}
+		}
+	}
+
+	private void createEsg(VFMethod vfMethod) {
+		List<VFUnit> methodUnits = vfMethod.getUnits();
+		nodeMap = new HashMap<>();
+		VFUnit currUnit = null;
+		int statementNumb = 0;
+		int edgeCount =0;
+		
+		Iterator<VFUnit> unitIterator = methodUnits.iterator();
+		while (unitIterator.hasNext()) {
+			currUnit = unitIterator.next();
+			
+			List<String> insetIde = currUnit.getInSetIde();
+			if (!insetIde.isEmpty()) {
+				esg = true;
+				statementNumb++;
+				List<String> statementEdges = new ArrayList<String>();
+				List<String> outsetIde = currUnit.getOutSetIde();
+				for (int i = 0; i < insetIde.size(); i++) {
+					String srcNode = insetIde.get(i);
+					Node createdNode = graph.getNode(srcNode);
+					Node createdNodeAlias = null;
+					
+					if(createdNode == null) {
+						addNodesEsg(srcNode, statementNumb);
+					}
+
+					String[] targetNodeEdgValue = outsetIde.get(i).split("\\{");
+					String[] targetNodes = targetNodeEdgValue[0].split(",");
+					String[] edgeValue = targetNodeEdgValue[1].split(",");
+				//	 System.out.println("statement "+ currUnit.getFullyQualifiedName()+" , inset: "+srcNode+" , outset: "+Arrays.toString(targetNodes)); 
+					for (int j = 0; j < targetNodes.length; j++) {
+						String trgtNode = targetNodes[j].replace("[", "").replace("]", "").trim();
+						Node targetNode = graph.getNode(trgtNode);
+						int srcLast = nodeMap.get(srcNode);
+						
+						if(!statementEdges.contains(srcNode+"to"+trgtNode)) {
+							if(targetNode != null) {
+									int times = nodeMap.get(trgtNode);
+									times++;
+									createdNodeAlias = graph.addNode(trgtNode+times);
+									createdNodeAlias.setAttribute("ui.label", trgtNode+times);
+									createdNodeAlias.setAttribute("below", targetNode.getId());
+									edgeCount++;
+									
+									graph.addEdge("AD"+edgeCount, srcNode+(srcLast>1 ? srcLast : ""), trgtNode+times, true);
+									statementEdges.add(srcNode+"to"+trgtNode);
+									nodeMap.put(trgtNode, times);
+							} else {
+									addNodesEsg(trgtNode, statementNumb+1);
+									edgeCount++;
+									graph.addEdge("AD"+edgeCount, srcNode+(srcLast>1 ? srcLast : ""), trgtNode+nodeMap.get(trgtNode), true);
+									statementEdges.add(srcNode+"to"+trgtNode);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void addNodesEsg(String strNode, int limit) {
+		String topNodeId = "";
+		for (int x = 0; x < limit; x++) {
+			Node createdNode = null;
+			 if(x == 0) {
+				 	createdNode = graph.addNode(strNode);
+					createdNode.setAttribute("ui.label", strNode);
+					topNodeId = createdNode.getId();
+					createdNode.setAttribute("below", topNodeId);
+					nodeMap.put(strNode, 1);
+			   } else {
+				    createdNode = graph.addNode(strNode+x);
+					createdNode.setAttribute("ui.label", strNode+x);
+					createdNode.setAttribute("below", topNodeId);
+					nodeMap.put(strNode, x);
+			   }
 		}
 	}
 

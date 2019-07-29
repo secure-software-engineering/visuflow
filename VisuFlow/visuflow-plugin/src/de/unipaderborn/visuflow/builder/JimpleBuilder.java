@@ -190,7 +190,7 @@ public class JimpleBuilder extends IncrementalProjectBuilder {
 
 			} else {
 				for (IResource resource : folder.members()) {
-					resource.delete(IResource.FORCE, monitor);
+				//	resource.delete(IResource.FORCE, monitor);
 				}
 			}
 			classpath = location + classpath;
